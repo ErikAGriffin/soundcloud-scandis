@@ -13,25 +13,14 @@ class Hunter
   end
 
   def resolve_user(url)
-    res = get_json_from('http://api.soundcloud.com/resolve.json?url='+url+'&client_id='+@client_id)
+    res = get_json_from('http://api.soundcloud.com/resolve?url='+url+'&client_id='+@client_id)
     get_json_from(res[:location])
   end
 
   def search_scandis_of(users)
-    result = []
-    # places = ['oslo','bergen','asker','norway','trondheim','stockholm','copenhagen','sweden','denmark']
-    places = ['oslo','bergen','asker','norway','trondheim','norge']
-
-    users.each do |user|
-      found = false
-      if user[:country]
-        places.each {|place| user[:country].downcase.include?(place) ? (result<<user;found=true;break) : nil}
-      end
-      if user[:city] && !found
-        places.each {|place| user[:city].downcase.include?(place) ? (result<<user;break) : nil }
-      end
-    end
-    result
+    # places = /oslo|bergen|asker|norway|trondheim|norge|stockholm|copenhagen|sweden|denmark/i
+    places = /oslo|bergen|asker|norway|trondheim|norge/i
+    users.select{|user| user[:city].to_s + user[:country].to_s =~ places }
   end
 
   def set_target(id)
