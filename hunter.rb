@@ -12,39 +12,36 @@ class Hunter
     @target
   end
 
-  def prompt_resolve_user
-    url = prompt
-    resolve_user(url)
-  end
-
   def resolve_user(url)
     res = get_json_from('http://api.soundcloud.com/resolve.json?url='+url+'&client_id='+@client_id)
     get_json_from(res[:location])
   end
 
   def search_scandis_of(users)
-    places = ['oslo','bergen','asker','norway','trondheim','stockholm','copenhagen','sweden','denmark']
-    users.inject([]) do |result,user|
+    result = []
+    # places = ['oslo','bergen','asker','norway','trondheim','stockholm','copenhagen','sweden','denmark']
+    places = ['oslo','bergen','asker','norway','trondheim','norge']
+
+    users.each do |user|
+      found = false
       if user[:country]
-        places.each {|place| user[:country].downcase.include?(place) ? (result<<user;break) : nil}
-        result
-      elsif user[:city]
+        places.each {|place| user[:country].downcase.include?(place) ? (result<<user;found=true;break) : nil}
+      end
+      if user[:city] && !found
         places.each {|place| user[:city].downcase.include?(place) ? (result<<user;break) : nil }
-        result
-      else
-        result
       end
     end
+    result
   end
 
-  def prompt_set_target
-    url = prompt
-    set_target(url)
+  def set_target(id)
+    raise "must give user id as integer!\nUse resolve_target to pass url" if !id.is_a? Integer
+    @target = id.to_s
   end
 
-  def set_target(url)
+  def resolve_target(url)
     user = resolve_user(url)
-    @target = user[:id].to_s
+    set_target(user[:id])
   end
 
   def get_target_followings
@@ -67,10 +64,6 @@ class Hunter
 
   def get_resource(resource,id)
     'http://api.soundcloud.com/'+resource+'/'+id+'?client_id='+@client_id
-  end
-
-  def prompt
-    gets.chomp
   end
 
   def get_json_from(url)
